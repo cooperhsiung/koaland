@@ -20,7 +20,7 @@ import {
   ThriftFactory,
 } from '../';
 
-var UnpkgService = require('./gen-nodejs/UnpkgService');
+var UnpkgService = require('./gen_thrift/UnpkgService');
 const bodyParser = require('koa-bodyparser');
 
 @Controller({})

@@ -22,9 +22,9 @@ import {
   Use,
 } from '../';
 
-var UnpkgService = require('./gen-nodejs/UnpkgService');
-var { GreeterService } = require('./gen_code/helloworld_grpc_pb');
-var messages = require('./gen_code/helloworld_pb');
+var UnpkgService = require('./gen_thrift/UnpkgService');
+var { GreeterService } = require('./gen_gprc/helloworld_grpc_pb');
+var messages = require('./gen_gprc/helloworld_pb');
 
 const bodyParser = require('koa-bodyparser');
 
