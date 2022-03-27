@@ -11,7 +11,6 @@ export class HttpFactory {
   static async create(mod: any): Promise<any> {
     const app = new Koa();
     app.use(bodyParser());
-
     // const controllers: any[] = [];
     // console.log(Reflect.getMetadata(CONTROLLER_METADATA, mod),"====")
     const controllers = Reflect.getMetadata(CONTROLLER_METADATA, mod);
@@ -25,28 +24,11 @@ export class HttpFactory {
       let stacks = Reflect.getMetadata(PATH_ACTIONS, IController.prototype); // ?
 
       for (const { method, path, handler } of stacks) {
-        // router['get']('/asdasd',()=> {} )
-        (router as any)[method](path, async (ctx: any) => {
-          console.log(ctx);
-
+        // mount handler in this way, router['get']('/asdasd',()=> {} )
+        (router as any)[method](path, async (ctx: any, next: any) => {
           const valueArr: any = Reflect.getMetadata(PARAM_METADATA, IController.prototype, handler.name);
-          // 组装
-          for (const e of valueArr) {
-            const source = e.from ? get(ctx, e.from) : ctx;
-            if (e.key) {
-              console.log(e.key, '---');
-              e.relValue = get(source, e.key);
-
-              console.log(e.relValue, '---');
-            } else {
-              e.relValue = source || {};
-            }
-          }
-          let allPams = valueArr.sort(
-            (a: { paramIndex: number }, b: { paramIndex: number }) => a.paramIndex - b.paramIndex,
-          );
-          // console.log(allPams);
-          ctx.body = await handler(...allPams.map((e: any) => e.relValue));
+          console.log('========= valueArr', valueArr);
+          ctx.body = await handler(...valueArr.map(({ builder }: any) => builder(ctx)));
         });
       }
       // console.log(require('util').inspect(router, false, null));
@@ -64,11 +46,14 @@ export class ThriftFactory {
     for (const IController of controllers) {
       let stacks = Reflect.getMetadata(RPC_ACTIONS, IController.prototype); // ?
       console.log(stacks, '-----');
+      if (!stacks || !stacks.length) {
+        throw new Error('please wrap handler with @Rpc() ');
+      }
       for (const { method, handler } of stacks) {
         app.use(
           mount(`/${method}`, async (ctx: any, next: any) => {
             ctx.body = await handler();
-          }),
+          })
         );
       }
     }
@@ -79,20 +64,4 @@ export class ThriftFactory {
 
 export class GrpcFactory {
   static async create(mod: any): Promise<any> {}
-}
-
-function get(obj: any, path: string) {
-  if (!path) {
-    return obj;
-  }
-  const arr = path.split('.');
-  let result = obj;
-  while (arr.length) {
-    var x = arr.shift();
-    if (x === undefined || result === undefined) {
-      return;
-    }
-    result = result[x];
-  }
-  return result;
 }

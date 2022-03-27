@@ -13,6 +13,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   Request,
   Response,
   Rpc,
@@ -39,14 +40,16 @@ class UserController {
     @Param('id') uid: string,
     @Context() ctx: any,
     @Request() req: any,
+    @Req() req2: any,
     @Response() res: any
   ) {
-    // console.log('========= arguments', arguments);
-    console.log('========= as', as);
-    console.log('========= uid', uid);
-    console.log('========= qqqq', qqqq);
+
+    console.log('========= arguments', arguments);
+    // console.log('========= as', as);
+    // console.log('========= uid', uid);
+    // console.log('========= qqqq', qqqq);
     // console.log('========= ctx', ctx);
-    console.log('========= req', req);
+    console.log('========= req', req2);
     return 'hello world';
   }
 

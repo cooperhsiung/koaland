@@ -2,7 +2,15 @@
  * Created by Cooper on 2022/03/27.
  */
 import 'reflect-metadata';
-import { CONTROLLER_METADATA, CONTROLLER_PREFIX, Middleware, MIDDLEWARE_METADATA, PARAM_METADATA, PATH_ACTIONS, RPC_ACTIONS } from './constant';
+import {
+  CONTROLLER_METADATA,
+  CONTROLLER_PREFIX,
+  Middleware,
+  MIDDLEWARE_METADATA,
+  PARAM_METADATA,
+  PATH_ACTIONS,
+  RPC_ACTIONS,
+} from './constant';
 
 export interface ModuleOptions {
   controllers: any[];
@@ -27,54 +35,26 @@ export const Controller = ({ prefix = '' }): ClassDecorator => (target: any) => 
   Reflect.defineMetadata(CONTROLLER_PREFIX, prefix, target);
 };
 
-export const Get = (path: string): MethodDecorator => (
+const createMethodDecorator = (method: string) => (path: string): MethodDecorator => (
   target: any,
   propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
+  descriptor: PropertyDescriptor
 ) => {
   let handler = descriptor.value;
   let stacks = Reflect.getMetadata(PATH_ACTIONS, target) || [];
-  stacks.push({ method: 'get', path, handler });
+  stacks.push({ method, path, handler });
   Reflect.defineMetadata(PATH_ACTIONS, stacks, target);
 };
 
-export const Post = (path: string): MethodDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
-) => {
-  let handler = descriptor.value;
-  let stacks = Reflect.getMetadata(PATH_ACTIONS, target) || [];
-  stacks.push({ method: 'post', path, handler });
-  Reflect.defineMetadata(PATH_ACTIONS, stacks, target);
-};
-
-export const Put = (path: string): MethodDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
-) => {
-  let handler = descriptor.value;
-  let stacks = Reflect.getMetadata(PATH_ACTIONS, target) || [];
-  stacks.push({ method: 'put', path, handler });
-  Reflect.defineMetadata(PATH_ACTIONS, stacks, target);
-};
-
-export const Delete = (path: string): MethodDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
-) => {
-  let handler = descriptor.value;
-  let stacks = Reflect.getMetadata(PATH_ACTIONS, target) || [];
-  stacks.push({ method: 'delete', path, handler });
-  Reflect.defineMetadata(PATH_ACTIONS, stacks, target);
-};
+export const Get = createMethodDecorator('get');
+export const Put = createMethodDecorator('put');
+export const Post = createMethodDecorator('post');
+export const Delete = createMethodDecorator('delete');
 
 export const Rpc = (path?: string): MethodDecorator => (
   target: any,
   propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
+  descriptor: PropertyDescriptor
 ) => {
   let handler = descriptor.value;
   let stacks = Reflect.getMetadata(RPC_ACTIONS, target) || [];
@@ -82,125 +62,37 @@ export const Rpc = (path?: string): MethodDecorator => (
   Reflect.defineMetadata(RPC_ACTIONS, stacks, target);
 };
 
-export const Body = (key = ''): ParameterDecorator => (
+const createParamDecorator = (buildFn: Function) => (key = ''): ParameterDecorator => (
   target: any,
   propertyKey: string | symbol,
-  parameterIndex: number,
+  parameterIndex: number
 ) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'request.body',
-    relValue: undefined,
+  const params = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
+  // parameter decorator assemble order is descent
+  params.unshift({
+    // type,
+    // index: parameterIndex,
+    // key,
+    builder: (ctx: any) => (key ? buildFn(ctx)[key] : buildFn(ctx)),
   });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
+  Reflect.defineMetadata(PARAM_METADATA, params, target, propertyKey);
 };
 
-export const Query = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'query',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
-
-export const Param = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'params',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
-
-export const Context = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: '',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
+export const Query: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.query);
+export const Body: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.request.body);
+export const Param: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.params);
+export const Context: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx);
 export const Ctx = Context;
-
-export const Request = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'request',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
+export const Request: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.request);
 export const Req = Request;
-
-export const Response = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'response',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
+export const Response: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.response);
 export const Res = Response;
-
-export const Headers = (key = ''): ParameterDecorator => (
-  target: any,
-  propertyKey: string | symbol,
-  parameterIndex: number,
-) => {
-  const old = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
-  old.unshift({
-    key: key,
-    paramIndex: parameterIndex,
-    from: 'request.headers',
-    relValue: undefined,
-  });
-  // 变成了数组
-  Reflect.defineMetadata(PARAM_METADATA, old, target, propertyKey);
-};
+export const Headers: (key?: string) => ParameterDecorator = createParamDecorator((ctx: any) => ctx.request.headers);
 
 export const Use = (middleware: Middleware): MethodDecorator => (
   target: any,
   propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
+  descriptor: PropertyDescriptor
 ) => {
   const middlewares = Reflect.getMetadata(MIDDLEWARE_METADATA, target, propertyKey) || [];
   middlewares.unshift(middleware);
