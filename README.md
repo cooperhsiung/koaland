@@ -76,7 +76,7 @@ bootstrap();
 - `@Request`: get request object
 - `@Response`: get response object
 - `@Contenxt`: get context object
-- `@Headers`: get header object
+- `@Headers`: get headers object
 
 ```typescript
 import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
