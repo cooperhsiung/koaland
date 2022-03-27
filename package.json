@@ -1,7 +1,7 @@
 {
   "name": "koa-suit",
   "version": "1.0.7",
-  "description": ":rocket: A progressive, minimalist framework for building microservices on top of Koa & TypeScript",
+  "description": "A progressive, minimalist framework for building microservices on top of Koa & TypeScript",
   "main": "index.js",
   "scripts": {
     "build": "tsc --declaration",
