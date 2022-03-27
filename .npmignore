@@ -1,0 +1,7 @@
+.idea
+.vscode
+.gitignore
+.editorconfig
+package-lock.json
+index.ts
+examples/

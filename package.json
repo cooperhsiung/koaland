@@ -1,0 +1,37 @@
+{
+  "name": "koa-suit",
+  "version": "1.0.0",
+  "description": "all in one koa suit",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --declaration",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cooperhsiung/koa-suit.git"
+  },
+  "keywords": [
+    "koa",
+    "suit",
+    "microservice",
+    "http",
+    "rpc"
+  ],
+  "author": "Cooper Hsiung",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cooperhsiung/koa-suit/issues"
+  },
+  "homepage": "https://github.com/cooperhsiung/koa-suit#readme",
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "koa-thrift": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/koa__router": "^8.0.11",
+    "reflect-metadata": "^0.1.13"
+  }
+}
