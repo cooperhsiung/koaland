@@ -26,6 +26,8 @@ var UnpkgService = require('./gen-nodejs/UnpkgService');
 var { GreeterService } = require('./gen_code/helloworld_grpc_pb');
 var messages = require('./gen_code/helloworld_pb');
 
+const bodyParser = require('koa-bodyparser');
+
 const costMiddleware = async (ctx: any, next: any) => {
   // console.log('middle1')
   const start = Date.now();
@@ -127,7 +129,7 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
-  const app = await HttpFactory.create(AppModule);
+  const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {
     console.log('========= 1', 1);
   });

@@ -21,6 +21,7 @@ import {
 } from '../';
 
 var UnpkgService = require('./gen-nodejs/UnpkgService');
+const bodyParser = require('koa-bodyparser');
 
 @Controller({})
 class UserController {
@@ -43,7 +44,6 @@ class UserController {
     @Req() req2: any,
     @Response() res: any
   ) {
-
     console.log('========= arguments', arguments);
     // console.log('========= as', as);
     // console.log('========= uid', uid);
@@ -94,7 +94,7 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
-  const app = await HttpFactory.create(AppModule);
+  const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {
     console.log('========= 1', 1);
   });

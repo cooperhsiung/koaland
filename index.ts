@@ -7,8 +7,6 @@ import Koa from 'koa';
 import KoaGrpc from 'koa-grpc';
 import KoaThrift from 'koa-thrift';
 
-const bodyParser = require('koa-bodyparser');
-
 const CONTROLLER_METADATA = '__controller__';
 const MODULE_MIDDLEWARE_METADATA = '__module_middleware__';
 const CTRL_MIDDLEWARE_METADATA = '__controller_middleware__';
@@ -20,7 +18,12 @@ export type Middleware = (context: any, next: () => void) => Promise<any>;
 
 export interface ModuleOptions {
   controllers: any[];
-  midddlewares: any[]; //  middlewares apply on whole app
+  midddlewares: any[]; //  middlewares apply on whole module
+}
+
+export interface CreateOptions {
+  service?: any;
+  middlewares?: any[]; //  middlewares apply on whole app
 }
 
 /* decorator */
@@ -103,30 +106,33 @@ export const Headers: (key?: string) => ParameterDecorator = createParamDecorato
 
 /* factory */
 export class HttpFactory {
-  static async create(mod: any): Promise<any> {
+  static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new Koa();
-    app.use(bodyParser());
-    mount(app, mod);
+    mount(app, mod, options);
     return app;
   }
 }
 export class ThriftFactory {
-  static async create(mod: any, options: any): Promise<any> {
+  static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new KoaThrift({ service: options.service });
-    mount(app, mod);
+    mount(app, mod, options);
     return app;
   }
 }
 
 export class GrpcFactory {
-  static async create(mod: any, options: any): Promise<any> {
+  static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new KoaGrpc({ service: options.service });
-    mount(app, mod);
+    mount(app, mod, options);
     return app;
   }
 }
 
-function mount(app: any, mod: any) {
+function mount(app: any, mod: any, options: CreateOptions) {
+  if (Array.isArray(options.middlewares)) {
+    options.middlewares.forEach((e: any) => app.use(e));
+  }
+
   const mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, mod);
   mws.forEach((e: any) => app.use(e));
   const controllers = Reflect.getMetadata(CONTROLLER_METADATA, mod);
