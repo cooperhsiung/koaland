@@ -19,12 +19,35 @@ import {
   Response,
   Method,
   ThriftFactory,
-} from '../src';
+  Use,
+} from '../';
 
 var UnpkgService = require('./gen-nodejs/UnpkgService');
 var { GreeterService } = require('./gen_code/helloworld_grpc_pb');
 var messages = require('./gen_code/helloworld_pb');
 
+const costMiddleware = async (ctx: any, next: any) => {
+  // console.log('middle1')
+  const start = Date.now();
+  await next();
+  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
+};
+
+const testMiddleware = async (ctx: any, next: any) => {
+  // console.log('middle2')
+  const start = Date.now();
+  await next();
+  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
+};
+
+const testMiddleware2 = async (ctx: any, next: any) => {
+  // console.log('middle3')
+  const start = Date.now();
+  await next();
+  console.log(`process222 ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
+};
+
+@Use(testMiddleware2)
 @Controller({})
 class UserController {
   @Get('/test')
@@ -96,18 +119,6 @@ class UserController {
     return reply;
   }
 }
-
-const costMiddleware = async (ctx: any, next: any) => {
-  const start = Date.now();
-  await next();
-  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
-};
-
-const testMiddleware = async (ctx: any, next: any) => {
-  const start = Date.now();
-  await next();
-  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
-};
 
 @Module({
   controllers: [UserController],
