@@ -1,19 +1,30 @@
-# koa-suit
+/**
+ * Created by Cooper on 2022/03/27.
+ */
+import 'reflect-metadata';
+import {
+  Body,
+  Context,
+  Controller,
+  Get,
+  GrpcFactory,
+  Headers,
+  HttpFactory,
+  Module,
+  Param,
+  Post,
+  Query,
+  Req,
+  Request,
+  Response,
+  Method,
+  ThriftFactory,
+} from '../src';
 
-[![NPM Version][npm-image]][npm-url]
-[![Node Version][node-image]][node-url]
+var UnpkgService = require('./gen-nodejs/UnpkgService');
+var { GreeterService } = require('./gen_code/helloworld_grpc_pb');
+var messages = require('./gen_code/helloworld_pb');
 
-The suit of Koa.
-
-## Installation
-
-```bash
-npm i koa-suit -S
-```
-
-## Usage
-
-```typescript
 @Controller({})
 class UserController {
   @Get('/test')
@@ -32,14 +43,15 @@ class UserController {
     @Param('id') uid: string,
     @Context() ctx: any,
     @Request() req: any,
+    @Req() req2: any,
     @Response() res: any
   ) {
-    // console.log('========= arguments', arguments);
-    console.log('========= as', as);
-    console.log('========= uid', uid);
-    console.log('========= qqqq', qqqq);
+    console.log('========= arguments', arguments);
+    // console.log('========= as', as);
+    // console.log('========= uid', uid);
+    // console.log('========= qqqq', qqqq);
     // console.log('========= ctx', ctx);
-    console.log('========= req', req);
+    console.log('========= req', req2);
     return 'hello world';
   }
 
@@ -69,17 +81,37 @@ class UserController {
 
   // route for thrift or grpc
   @Method()
-  Publish(@Query('as') as: string) {
+  Publish(@Request() req: any) {
     console.log('========= arguments', arguments);
-    console.log('========= 1', 1);
-    console.log('========= as', as);
+    console.log('========= req', req);
     return { code: 0, message: 'publish success' };
+  }
+
+  // route for thrift or grpc
+  @Method()
+  sayHello(@Context() ctx: any) {
+    console.log('ctx.request: ', (ctx.request as any).getName());
+    var reply = new messages.HelloReply();
+    reply.setMessage('Hello ' + ctx.call.request.getName());
+    return reply;
   }
 }
 
+const costMiddleware = async (ctx: any, next: any) => {
+  const start = Date.now();
+  await next();
+  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
+};
+
+const testMiddleware = async (ctx: any, next: any) => {
+  const start = Date.now();
+  await next();
+  console.log(`process ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
+};
+
 @Module({
   controllers: [UserController],
-  midddlewares: [],
+  midddlewares: [costMiddleware, testMiddleware],
 })
 class AppModule {}
 
@@ -98,25 +130,13 @@ async function bootstrap() {
 
   await app2.listen(3001);
   console.log('listening on 3001...');
+
+  const app3 = await GrpcFactory.create(AppModule, { service: GreeterService });
+  app3.use((ctx: any, next: any) => {
+    console.log('========= 2', 2);
+  });
+
+  await app3.listen('0.0.0.0:3002');
+  console.log('listening on 3002...');
 }
 bootstrap();
-```
-
-## Generate code
-
-
-
-## Examples
-
-examples with client are listed at [examples](https://github.com/cooperhsiung/koa-suit/tree/master/examples)
-
-## Others
-
-## License
-
-MIT
-
-[npm-image]: https://img.shields.io/npm/v/koa-suit.svg
-[npm-url]: https://www.npmjs.com/package/koa-suit
-[node-image]: https://img.shields.io/badge/node.js-%3E=8-brightgreen.svg
-[node-url]: https://nodejs.org/download/

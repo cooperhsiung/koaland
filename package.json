@@ -1,6 +1,6 @@
 {
   "name": "koa-suit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "all in one koa suit",
   "main": "dist/index.js",
   "scripts": {
@@ -28,7 +28,8 @@
     "@koa/router": "^10.1.1",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "koa-thrift": "^1.0.7"
+    "koa-grpc": "^1.0.4",
+    "koa-thrift": "^1.0.8"
   },
   "devDependencies": {
     "@types/koa__router": "^8.0.11",

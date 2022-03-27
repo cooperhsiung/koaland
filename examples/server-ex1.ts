@@ -16,7 +16,7 @@ import {
   Req,
   Request,
   Response,
-  Rpc,
+  Method,
   ThriftFactory,
 } from '../src';
 
@@ -78,7 +78,7 @@ class UserController {
   }
 
   // route for thrift or grpc
-  @Rpc()
+  @Method()
   Publish(@Query('as') as: string) {
     console.log('========= arguments', arguments);
     console.log('========= 1', 1);

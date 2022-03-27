@@ -3,6 +3,7 @@
  */
 import 'reflect-metadata';
 import {
+  APP_MIDDLEWARE_METADATA,
   CONTROLLER_METADATA,
   CONTROLLER_PREFIX,
   Middleware,
@@ -14,7 +15,7 @@ import {
 
 export interface ModuleOptions {
   controllers: any[];
-  midddlewares: any[];
+  midddlewares: any[];  //  middlewares apply on whole app
 }
 
 // params options, return class decorator
@@ -25,9 +26,12 @@ export const Module = (options: ModuleOptions): ClassDecorator => (target: any) 
     Reflect.defineMetadata(CONTROLLER_METADATA, old_cs, target);
   }
   if (Array.isArray(options.midddlewares)) {
-    const old_mws = Reflect.getMetadata(MIDDLEWARE_METADATA, target) || [];
-    old_mws.unshift(...options.midddlewares);
-    Reflect.defineMetadata(MIDDLEWARE_METADATA, old_mws, target);
+    const old_mws = Reflect.getMetadata(APP_MIDDLEWARE_METADATA, target) || [];
+    // old_mws.unshift(...options.midddlewares);
+    // console.log(old_mws)
+    old_mws.push(...options.midddlewares)
+    console.log(old_mws)
+    Reflect.defineMetadata(APP_MIDDLEWARE_METADATA, old_mws, target);
   }
 };
 
@@ -51,7 +55,7 @@ export const Put = createMethodDecorator('put');
 export const Post = createMethodDecorator('post');
 export const Delete = createMethodDecorator('delete');
 
-export const Rpc = (path?: string): MethodDecorator => (
+export const Method = (path?: string): MethodDecorator => (
   target: any,
   propertyKey: string | symbol,
   descriptor: PropertyDescriptor

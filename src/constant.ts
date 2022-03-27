@@ -6,6 +6,7 @@ export const CONTROLLER_METADATA = '__controller__';
 export const NAME_METADATA = '__name__';
 export const IDL_METADATA = '__idl__';
 export const MIDDLEWARE_METADATA = '__middleware__';
+export const APP_MIDDLEWARE_METADATA = '__app_middleware__';
 export const PARAM_METADATA = '__param__';
 export const CONTROLLER_PREFIX = 'CONTROLLER_PREFIX';
 export const PATH_ACTIONS = 'PATH_ACTIONS';
