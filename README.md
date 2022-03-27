@@ -15,7 +15,7 @@ npm i koa-suit -S
 
 ## Usage
 
-### simple app
+### Simple app
 
 1. Create a file UserController.ts
 
@@ -68,15 +68,15 @@ async function bootstrap() {
 bootstrap();
 ```
 
-### receive request parameters
+### Receive request parameters
 
-- **@Query**: get url query parameters
-- **@Param**: get url path variables
-- **@Body**: get request post body
-- **@Request**: get request object
-- **@Response**: get response object
-- **@Contenxt**: get context object
-- **@Headers**: get header object
+- `@Query`: get url query parameters
+- `@Param`: get url path variables
+- `@Body`: get request post body
+- `@Request`: get request object
+- `@Response`: get response object
+- `@Contenxt`: get context object
+- `@Headers`: get header object
 
 ```typescript
 import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
@@ -110,7 +110,7 @@ export class UserController {
 }
 ```
 
-### reusable app modules
+### Reusable app modules
 
 **write once, run anywhere**
 
@@ -240,7 +240,6 @@ grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./gen_gprc --grpc_o
 ## Examples
 
 examples with client are listed at [examples](https://github.com/cooperhsiung/koa-suit/tree/master/examples)
-unpkg.thrift
 
 ## Others
 
