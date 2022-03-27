@@ -1,8 +1,8 @@
 {
   "name": "koa-suit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "all in one koa suit",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc --declaration",
     "test": "echo \"Error: no test specified\" && exit 1"

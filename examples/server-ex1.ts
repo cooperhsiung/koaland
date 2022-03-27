@@ -17,7 +17,7 @@ import {
   Response,
   Rpc,
   ThriftFactory,
-} from '../index';
+} from '../src';
 
 var UnpkgService = require('./gen-nodejs/UnpkgService');
 
