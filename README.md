@@ -7,7 +7,7 @@
 
 :rocket: A progressive, minimalist framework for building microservices on top of Koa & TypeScript.
 
-:atom: Regardless of protocals, **write once, run anywhere** , includes http,thrift,grpc..
+:globe_with_meridians: Regardless of protocals, **write once, run anywhere** , includes http,thrift,grpc..
 
 :jigsaw: Idiomatic and composable decorators
 
