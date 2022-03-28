@@ -3,7 +3,7 @@
 [![NPM Version][npm-image]][npm-url]
 [![Node Version][node-image]][node-url]
 
-<p align="center"><img src="logo.png" width="400"/></p>
+<p align="center"><img src="logo.png" width="480"/></p>
 
 :rocket: A progressive, minimalist framework for building microservices on top of Koa & TypeScript.
 
