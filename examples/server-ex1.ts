@@ -18,7 +18,7 @@ import {
   Response,
   Method,
   ThriftFactory,
-} from '../';
+} from '../src';
 
 var UnpkgService = require('./gen_thrift/UnpkgService');
 const bodyParser = require('koa-bodyparser');
