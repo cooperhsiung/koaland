@@ -13,7 +13,7 @@ export class UserController {
     return 'This action returns all users';
   }
 
-  @Get('/:id')
+  @Get(':id')
   getOne(@Param('id') id: number) {
     return 'This action returns user #' + id;
   }

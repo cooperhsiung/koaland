@@ -59,6 +59,9 @@ const createMethodDecorator = (method: string) => (path?: string): MethodDecorat
 ) => {
   let handler = descriptor.value;
   let stacks = Reflect.getMetadata(HANDLER_METADATA, target) || [];
+  if (path && !path.startsWith('/')) {
+    path = '/' + path
+  }
   stacks.push({ method, path: path || '/', handler });
   Reflect.defineMetadata(HANDLER_METADATA, stacks, target);
 };
