@@ -14,7 +14,7 @@ const PARAM_METADATA = '__param__';
 const CONTROLLER_PREFIX = '__controller_prefix__';
 const HANDLER_METADATA = '__handler__';
 const globalClassMap: any = {};
-const PARAM_PROVIDER = '__param_provider__';
+const PROPERTY_PROVIDER = '__property_provider__';
 const CLASS_TOKEN = '__class_token__';
 
 export type Middleware = (context: any, next: () => void) => Promise<any>;
@@ -51,20 +51,20 @@ export const Injectable = (token?: string): ClassDecorator => (target: any) => {
 
 export const Inject = (token?: string): PropertyDecorator => (target: any, propertyKey: string | symbol) => {
   const targetType = Reflect.getMetadata('design:type', target, propertyKey);
-  const paramProviders = Reflect.getMetadata(PARAM_PROVIDER, target) || [];
-  paramProviders.push({
+  const propertyProviders = Reflect.getMetadata(PROPERTY_PROVIDER, target) || [];
+  propertyProviders.push({
     propertyKey: propertyKey,
     token: token || propertyKey,
     Constructor: targetType,
   });
-  Reflect.defineMetadata(PARAM_PROVIDER, paramProviders, target);
+  Reflect.defineMetadata(PROPERTY_PROVIDER, propertyProviders, target);
 };
 
 type Constructor<T = any> = new (...args: any[]) => T;
 
 export const autowired = <T>(target: Constructor<T>): T => {
   const paramProviders = Reflect.getMetadata('design:paramtypes', target);
-  const propertyProviders = Reflect.getMetadata(PARAM_PROVIDER, target.prototype) || [];
+  const propertyProviders = Reflect.getMetadata(PROPERTY_PROVIDER, target.prototype) || [];
   if (!paramProviders && !propertyProviders.length) {
     return new target() as any;
   }
