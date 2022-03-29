@@ -2,11 +2,10 @@
  * Created by Cooper on 2022/03/29.
  */
 import 'reflect-metadata';
-
-import Koa from 'koa';
-import KoaThrift from 'koa-thrift';
-import KoaGrpc from 'koa-grpc';
 import KoaRouter from '@koa/router';
+import Koa from 'koa';
+import KoaGrpc from 'koa-grpc';
+import KoaThrift from 'koa-thrift';
 
 const CONTROLLER_METADATA = '__controller__';
 const MODULE_MIDDLEWARE_METADATA = '__module_middleware__';
@@ -84,12 +83,7 @@ const createParamDecorator = (buildFn: Function) => (key = ''): ParameterDecorat
 ) => {
   const params = Reflect.getMetadata(PARAM_METADATA, target, propertyKey) || [];
   // parameter decorator assemble order is descent
-  params.unshift({
-    // type,
-    // index: parameterIndex,
-    // key,
-    builder: (ctx: any) => (key ? buildFn(ctx)[key] : buildFn(ctx)),
-  });
+  params.unshift({ builder: (ctx: any) => (key ? buildFn(ctx)[key] : buildFn(ctx)) });
   Reflect.defineMetadata(PARAM_METADATA, params, target, propertyKey);
 };
 
@@ -148,8 +142,8 @@ function mount(app: any, mod: any, options: CreateOptions) {
     for (const { method, path, handler } of stacks) {
       // mount handler in this way, router['get']('/asdasd',()=> {} )
       (router as any)[method](path, async (ctx: any, next: any) => {
-        const valueArr: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name);
-        ctx.body = await handler(...valueArr.map(({ builder }: any) => builder(ctx)));
+        const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name);
+        ctx.body = await handler(...paramBuilders.map(({ builder }: any) => builder(ctx)));
       });
     }
     app.use(router.routes());
