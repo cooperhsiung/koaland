@@ -39,8 +39,11 @@ export const Module = (options: ModuleOptions): ClassDecorator => (target: any) 
   }
 };
 
-export const Controller = ({ prefix = '' }): ClassDecorator => (target: any) => {
-  Reflect.defineMetadata(CONTROLLER_PREFIX, prefix, target);
+export const Controller = (options?: { prefix?: string }): ClassDecorator => (target: any) => {
+  if (options?.prefix && !options.prefix.startsWith('/')) {
+    options.prefix = '/' + options.prefix;
+  }
+  Reflect.defineMetadata(CONTROLLER_PREFIX, options?.prefix, target);
 };
 
 export const Use = (middleware: Middleware): ClassDecorator => (target: any) => {
@@ -49,14 +52,14 @@ export const Use = (middleware: Middleware): ClassDecorator => (target: any) => 
   Reflect.defineMetadata(CTRL_MIDDLEWARE_METADATA, middlewares, target);
 };
 
-const createMethodDecorator = (method: string) => (path: string): MethodDecorator => (
+const createMethodDecorator = (method: string) => (path?: string): MethodDecorator => (
   target: any,
   propertyKey: string | symbol,
   descriptor: PropertyDescriptor
 ) => {
   let handler = descriptor.value;
   let stacks = Reflect.getMetadata(HANDLER_METADATA, target) || [];
-  stacks.push({ method, path, handler });
+  stacks.push({ method, path: path || '/', handler });
   Reflect.defineMetadata(HANDLER_METADATA, stacks, target);
 };
 
@@ -131,20 +134,20 @@ function mount(app: any, mod: any, options: CreateOptions) {
   const controllers = Reflect.getMetadata(CONTROLLER_METADATA, mod);
 
   for (const ctrlClass of controllers) {
-    let prefix = Reflect.getMetadata(CONTROLLER_PREFIX, ctrlClass); // class
-    let router = new KoaRouter();
-    const mws = Reflect.getMetadata(CTRL_MIDDLEWARE_METADATA, ctrlClass);
+    let prefix = Reflect.getMetadata(CONTROLLER_PREFIX, ctrlClass) || ''; // class
+
+    let router = new KoaRouter({ prefix });
+    const mws = Reflect.getMetadata(CTRL_MIDDLEWARE_METADATA, ctrlClass) || [];
     router.use(mws);
 
-    prefix && router.prefix(prefix);
-    let stacks = Reflect.getMetadata(HANDLER_METADATA, ctrlClass.prototype); // method
+    let stacks = Reflect.getMetadata(HANDLER_METADATA, ctrlClass.prototype) || []; // method
 
     for (const { method, path, handler } of stacks) {
       // mount handler in this way, router['get']('/asdasd',()=> {} )
       (router as any)[method](path, async (ctx: any, next: any) => {
-        const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name);
+        const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name) || [];
         ctx.body = await handler(...paramBuilders.map(({ builder }: any) => builder(ctx)));
-        await next()
+        await next();
       });
     }
     app.use(router.routes());

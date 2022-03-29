@@ -50,7 +50,7 @@ const testMiddleware2 = async (ctx: any, next: any) => {
 };
 
 @Use(testMiddleware2)
-@Controller()
+@Controller({})
 class UserController {
   @Get('/test')
   hello(@Query('as') as: string) {

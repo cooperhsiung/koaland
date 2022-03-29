@@ -26,29 +26,29 @@ npm i koa-suit -S
 ```typescript
 import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
 
-@Controller()
+@Controller({ prefix: '/users' })
 export class UserController {
-  @Get('/users')
+  @Get()
   getAll() {
     return 'This action returns all users';
   }
 
-  @Get('/users/:id')
+  @Get('/:id')
   getOne(@Param('id') id: number) {
     return 'This action returns user #' + id;
   }
 
-  @Post('/users')
+  @Post()
   post(@Body() user: any) {
     return 'Saving user...';
   }
 
-  @Put('/users/:id')
+  @Put('/:id')
   put(@Param('id') id: number, @Body() user: any) {
     return 'Updating a user...';
   }
 
-  @Delete('/users/:id')
+  @Delete('/:id')
   remove(@Param('id') id: number) {
     return 'Removing user...';
   }
