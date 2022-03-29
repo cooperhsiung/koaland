@@ -13,11 +13,14 @@ const CTRL_MIDDLEWARE_METADATA = '__controller_middleware__';
 const PARAM_METADATA = '__param__';
 const CONTROLLER_PREFIX = '__controller_prefix__';
 const HANDLER_METADATA = '__handler__';
+const globalClassMap: any = {};
+const PROPERTY_PROVIDER = '__property_provider__';
+const CLASS_TOKEN = '__class_token__';
 
 export type Middleware = (context: any, next: () => void) => Promise<any>;
 
 export interface ModuleOptions {
-  controllers: any[];
+  controllers: any[]; // should input at least one
   midddlewares: any[]; //  middlewares apply on whole module
 }
 
@@ -26,11 +29,13 @@ export interface CreateOptions {
   middlewares?: any[]; //  middlewares apply on whole app
 }
 
+const MOD_INSTANCE = 'mod_ctrl_instances';
+
 export const Module = (options: ModuleOptions): ClassDecorator => (target: any) => {
   if (Array.isArray(options.controllers)) {
-    const old_ctrls = Reflect.getMetadata(CONTROLLER_METADATA, target) || [];
-    old_ctrls.unshift(...options.controllers);
-    Reflect.defineMetadata(CONTROLLER_METADATA, old_ctrls, target);
+    // aoto wired, instancelize, one module, init once
+    let ins = options.controllers.map((e: any) => autowired(e));
+    Reflect.defineMetadata(MOD_INSTANCE, ins, target);
   }
   if (Array.isArray(options.midddlewares)) {
     const old_mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, target) || [];
@@ -39,11 +44,51 @@ export const Module = (options: ModuleOptions): ClassDecorator => (target: any) 
   }
 };
 
+export const Injectable = (token?: string): ClassDecorator => (target: any) => {
+  globalClassMap[token || target.name] = target; // 存储构造类
+  Reflect.defineMetadata(CLASS_TOKEN, token || target.name, target);
+};
+
+export const Inject = (token?: string): PropertyDecorator => (target: any, propertyKey: string | symbol) => {
+  const targetType = Reflect.getMetadata('design:type', target, propertyKey);
+  const propertyProviders = Reflect.getMetadata(PROPERTY_PROVIDER, target) || [];
+  propertyProviders.push({
+    propertyKey: propertyKey,
+    token: token || propertyKey,
+    Constructor: targetType,
+  });
+  Reflect.defineMetadata(PROPERTY_PROVIDER, propertyProviders, target);
+};
+
+type Constructor<T = any> = new (...args: any[]) => T;
+
+export const autowired = <T>(target: Constructor<T>): T => {
+  const paramProviders = Reflect.getMetadata('design:paramtypes', target);
+  const propertyProviders = Reflect.getMetadata(PROPERTY_PROVIDER, target.prototype) || [];
+  if (!paramProviders && !propertyProviders.length) {
+    return new target() as any;
+  }
+  const args = (paramProviders || []).map((provider: Constructor) => {
+    let token = Reflect.getMetadata(CLASS_TOKEN, provider);
+    if (globalClassMap[token]) {
+      return autowired(provider);
+    }
+    return provider;
+  });
+
+  const instance = new target(...args) as any;
+  propertyProviders.forEach((provider: any) => {
+    instance[provider.propertyKey] = autowired(provider.Constructor);
+  });
+  return instance;
+};
+
 export const Controller = (options?: { prefix?: string }): ClassDecorator => (target: any) => {
   if (options?.prefix && !options.prefix.startsWith('/')) {
     options.prefix = '/' + options.prefix;
   }
-  Reflect.defineMetadata(CONTROLLER_PREFIX, options?.prefix, target);
+  Reflect.defineMetadata(CONTROLLER_PREFIX, options?.prefix, target.prototype);
+  // globalClassMap[target.name] = target
 };
 
 export const Use = (middleware: Middleware): ClassDecorator => (target: any) => {
@@ -60,7 +105,7 @@ const createMethodDecorator = (method: string) => (path?: string): MethodDecorat
   let handler = descriptor.value;
   let stacks = Reflect.getMetadata(HANDLER_METADATA, target) || [];
   if (path && !path.startsWith('/')) {
-    path = '/' + path
+    path = '/' + path;
   }
   stacks.push({ method, path: path || '/', handler });
   Reflect.defineMetadata(HANDLER_METADATA, stacks, target);
@@ -107,14 +152,34 @@ export const Headers = createParamDecorator((ctx: any) => ctx.request.headers);
 export class HttpFactory {
   static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new Koa();
-    mount(app, mod, options);
+
+    // use global mid, ok
+    if (Array.isArray(options.middlewares)) {
+      options.middlewares.forEach((e: any) => app.use(e));
+    }
+    const mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, mod);
+    mws.forEach((e: any) => app.use(e));
+
+    const routers = mount(app, mod, options);
+    routers.forEach((e: any) => app.use(e));
+    // app.use(routers)
     return app;
   }
 }
 export class ThriftFactory {
   static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new KoaThrift({ service: options.service });
-    mount(app, mod, options);
+
+    // use global mid, ok
+    if (Array.isArray(options.middlewares)) {
+      options.middlewares.forEach((e: any) => app.use(e));
+    }
+    const mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, mod);
+    mws.forEach((e: any) => app.use(e));
+
+    const routers = mount(app, mod, options);
+    routers.forEach((e: any) => app.use(e));
+    // app.use(routers)
     return app;
   }
 }
@@ -122,37 +187,48 @@ export class ThriftFactory {
 export class GrpcFactory {
   static async create(mod: any, options: CreateOptions = {}): Promise<any> {
     const app = new KoaGrpc({ service: options.service });
-    mount(app, mod, options);
+
+    // use global mid, ok
+    if (Array.isArray(options.middlewares)) {
+      options.middlewares.forEach((e: any) => app.use(e));
+    }
+    const mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, mod);
+    mws.forEach((e: any) => app.use(e));
+
+    const routers = mount(app, mod, options);
+    routers.forEach((e: any) => app.use(e));
+    // app.use(routers)
+
     return app;
   }
 }
 
-function mount(app: any, mod: any, options: CreateOptions) {
-  if (Array.isArray(options.middlewares)) {
-    options.middlewares.forEach((e: any) => app.use(e));
-  }
+// 一个 app, 一组路由
 
-  const mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, mod);
-  mws.forEach((e: any) => app.use(e));
-  const controllers = Reflect.getMetadata(CONTROLLER_METADATA, mod);
+function mount(app: any, mod: any, options: CreateOptions): any {
+  // const controllers = Reflect.getMetadata(CONTROLLER_METADATA, mod);
+  const ctrlInstances = Reflect.getMetadata(MOD_INSTANCE, mod);
 
-  for (const ctrlClass of controllers) {
-    let prefix = Reflect.getMetadata(CONTROLLER_PREFIX, ctrlClass) || ''; // class
+  let x = ctrlInstances.map((ctrl: any) => {
+    let prefix = Reflect.getMetadata(CONTROLLER_PREFIX, ctrl) || ''; // class
 
     let router = new KoaRouter({ prefix });
-    const mws = Reflect.getMetadata(CTRL_MIDDLEWARE_METADATA, ctrlClass) || [];
+    const mws = Reflect.getMetadata(CTRL_MIDDLEWARE_METADATA, ctrl) || [];
     router.use(mws);
 
-    let stacks = Reflect.getMetadata(HANDLER_METADATA, ctrlClass.prototype) || []; // method
+    let stacks = Reflect.getMetadata(HANDLER_METADATA, ctrl) || []; // method
 
     for (const { method, path, handler } of stacks) {
       // mount handler in this way, router['get']('/asdasd',()=> {} )
       (router as any)[method](path, async (ctx: any, next: any) => {
-        const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name) || [];
-        ctx.body = await handler(...paramBuilders.map(({ builder }: any) => builder(ctx)));
+        const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrl, handler.name) || [];
+        ctx.body = await handler.call(ctrl, ...paramBuilders.map(({ builder }: any) => builder(ctx)));
         await next();
       });
     }
-    app.use(router.routes());
-  }
+    return router.routes();
+  });
+
+  // console.log("========= x",x);
+  return x;
 }

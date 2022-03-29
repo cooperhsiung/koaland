@@ -3,6 +3,7 @@
  */
 import 'reflect-metadata';
 import {
+  autowired,
   Body,
   Context,
   Controller,
@@ -10,6 +11,8 @@ import {
   GrpcFactory,
   Headers,
   HttpFactory,
+  Inject,
+  Injectable,
   Method,
   Module,
   Param,
@@ -49,11 +52,54 @@ const testMiddleware2 = async (ctx: any, next: any) => {
   console.log(`process222 ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
 };
 
+// @Injectable()
+// class Test3Service {
+//
+//   sayHello(){
+//     console.log("test")
+//   }
+//
+// }
+
+@Injectable()
+class Test2Service {
+  sayHello() {}
+}
+
+@Injectable()
+class TestService {
+  constructor(public readonly test2Service: Test2Service) {}
+
+  sayHello() {
+    console.log('test');
+    return 'test';
+  }
+}
+
+@Injectable()
+class UserService {
+  @Inject() public testService: TestService;
+  // constructor(private test2Service: Test2Service) {
+  //
+  // }
+  sayYes() {
+    return 'yes';
+  }
+}
+
 @Use(testMiddleware2)
-@Controller({})
+@Controller({ prefix: 'hello' })
 class UserController {
+  @Inject() public userService: UserService;
+  constructor() {}
+
   @Get('/test')
   hello(@Query('as') as: string) {
+    console.log(this, '-----');
+
+    console.log(this.userService.testService.test2Service.sayHello());
+
+    // console.log(this.userService.sayYes());
     console.log('========= arguments', arguments);
     console.log('========= 1', 1);
     console.log('========= as', as);
@@ -71,7 +117,7 @@ class UserController {
     @Req() req2: any,
     @Response() res: any
   ) {
-    console.log('========= arguments', arguments);
+    // console.log('========= arguments', arguments);
     // console.log('========= as', as);
     // console.log('========= uid', uid);
     // console.log('========= qqqq', qqqq);
@@ -129,6 +175,14 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
+  let x = autowired(UserService);
+
+  console.log('========= x', x);
+  // console.log("-------",x, (x as any).testService.sayHello())
+  // console.log(1)
+  // let x = new UserController(1);
+  // console.log(x, (x as any).test)
+
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {
     console.log('========= 1', 1);
