@@ -12,7 +12,7 @@ const MODULE_MIDDLEWARE_METADATA = '__module_middleware__';
 const CTRL_MIDDLEWARE_METADATA = '__controller_middleware__';
 const PARAM_METADATA = '__param__';
 const CONTROLLER_PREFIX = '__controller_prefix__';
-const PATH_ACTION = '__path_action__';
+const HANDLER_METADATA = '__handler__';
 
 export type Middleware = (context: any, next: () => void) => Promise<any>;
 
@@ -28,9 +28,9 @@ export interface CreateOptions {
 
 export const Module = (options: ModuleOptions): ClassDecorator => (target: any) => {
   if (Array.isArray(options.controllers)) {
-    const old_cs = Reflect.getMetadata(CONTROLLER_METADATA, target) || [];
-    old_cs.unshift(...options.controllers);
-    Reflect.defineMetadata(CONTROLLER_METADATA, old_cs, target);
+    const old_ctrls = Reflect.getMetadata(CONTROLLER_METADATA, target) || [];
+    old_ctrls.unshift(...options.controllers);
+    Reflect.defineMetadata(CONTROLLER_METADATA, old_ctrls, target);
   }
   if (Array.isArray(options.midddlewares)) {
     const old_mws = Reflect.getMetadata(MODULE_MIDDLEWARE_METADATA, target) || [];
@@ -55,9 +55,9 @@ const createMethodDecorator = (method: string) => (path: string): MethodDecorato
   descriptor: PropertyDescriptor
 ) => {
   let handler = descriptor.value;
-  let stacks = Reflect.getMetadata(PATH_ACTION, target) || [];
+  let stacks = Reflect.getMetadata(HANDLER_METADATA, target) || [];
   stacks.push({ method, path, handler });
-  Reflect.defineMetadata(PATH_ACTION, stacks, target);
+  Reflect.defineMetadata(HANDLER_METADATA, stacks, target);
 };
 
 export const Get = createMethodDecorator('get');
@@ -71,9 +71,9 @@ export const Method = (): MethodDecorator => (
   descriptor: PropertyDescriptor
 ) => {
   const handler = descriptor.value;
-  const stacks = Reflect.getMetadata(PATH_ACTION, target) || [];
+  const stacks = Reflect.getMetadata(HANDLER_METADATA, target) || [];
   stacks.push({ method: 'get', path: `/${String(propertyKey)}`, handler });
-  Reflect.defineMetadata(PATH_ACTION, stacks, target);
+  Reflect.defineMetadata(HANDLER_METADATA, stacks, target);
 };
 
 const createParamDecorator = (buildFn: Function) => (key = ''): ParameterDecorator => (
@@ -137,13 +137,14 @@ function mount(app: any, mod: any, options: CreateOptions) {
     router.use(mws);
 
     prefix && router.prefix(prefix);
-    let stacks = Reflect.getMetadata(PATH_ACTION, ctrlClass.prototype); // method
+    let stacks = Reflect.getMetadata(HANDLER_METADATA, ctrlClass.prototype); // method
 
     for (const { method, path, handler } of stacks) {
       // mount handler in this way, router['get']('/asdasd',()=> {} )
       (router as any)[method](path, async (ctx: any, next: any) => {
         const paramBuilders: any = Reflect.getMetadata(PARAM_METADATA, ctrlClass.prototype, handler.name);
         ctx.body = await handler(...paramBuilders.map(({ builder }: any) => builder(ctx)));
+        await next()
       });
     }
     app.use(router.routes());
