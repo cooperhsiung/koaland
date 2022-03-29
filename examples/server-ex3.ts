@@ -3,6 +3,7 @@
  */
 import 'reflect-metadata';
 import {
+  autowired,
   Body,
   Context,
   Controller,
@@ -10,6 +11,8 @@ import {
   GrpcFactory,
   Headers,
   HttpFactory,
+  Inject,
+  Injectable,
   Method,
   Module,
   Param,
@@ -18,7 +21,6 @@ import {
   Req,
   Request,
   Response,
-  Service,
   ThriftFactory,
   Use,
 } from '../';
@@ -50,20 +52,54 @@ const testMiddleware2 = async (ctx: any, next: any) => {
   console.log(`process222 ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
 };
 
-@Service()
-class UserService {}
+// @Injectable()
+// class Test3Service {
+//
+//   sayHello(){
+//     console.log("test")
+//   }
+//
+// }
+
+@Injectable()
+class Test2Service {
+  sayHello() {}
+}
+
+@Injectable()
+class TestService {
+  constructor(public readonly test2Service: Test2Service) {}
+
+  sayHello() {
+    console.log('test');
+    return 'test';
+  }
+}
+
+@Injectable()
+class UserService {
+  @Inject() public testService: TestService;
+  // constructor(private test2Service: Test2Service) {
+  //
+  // }
+  sayYes() {
+    return 'yes';
+  }
+}
 
 @Use(testMiddleware2)
 @Controller({ prefix: 'hello' })
 class UserController {
-  constructor(private readonly userService: UserService) {
-    console.log("========= i'm constructor", 111111);
-  }
+  @Inject() public userService: UserService;
+  constructor() {}
 
   @Get('/test')
   hello(@Query('as') as: string) {
     console.log(this, '-----');
-    console.log(this.userService);
+
+    console.log(this.userService.testService.test2Service.sayHello());
+
+    // console.log(this.userService.sayYes());
     console.log('========= arguments', arguments);
     console.log('========= 1', 1);
     console.log('========= as', as);
@@ -81,7 +117,7 @@ class UserController {
     @Req() req2: any,
     @Response() res: any
   ) {
-    console.log('========= arguments', arguments);
+    // console.log('========= arguments', arguments);
     // console.log('========= as', as);
     // console.log('========= uid', uid);
     // console.log('========= qqqq', qqqq);
@@ -139,13 +175,10 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
-  UserController.prototype.constructor = function UserController(as: any) {
-    let args = arguments;
-    console.log('========= args', args);
-    const newInstance = Object.create(UserController.prototype);
-    return newInstance;
-  };
+  let x = autowired(UserService);
 
+  console.log('========= x', x);
+  // console.log("-------",x, (x as any).testService.sayHello())
   // console.log(1)
   // let x = new UserController(1);
   // console.log(x, (x as any).test)
