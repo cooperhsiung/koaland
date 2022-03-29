@@ -18,6 +18,7 @@ import {
   Req,
   Request,
   Response,
+  Service,
   ThriftFactory,
   Use,
 } from '../';
@@ -49,11 +50,20 @@ const testMiddleware2 = async (ctx: any, next: any) => {
   console.log(`process222 ${ctx.path} request from ${ctx.ip} cost ${Date.now() - start}ms`);
 };
 
+@Service()
+class UserService {}
+
 @Use(testMiddleware2)
-@Controller({})
+@Controller({ prefix: 'hello' })
 class UserController {
+  constructor(private readonly userService: UserService) {
+    console.log("========= i'm constructor", 111111);
+  }
+
   @Get('/test')
   hello(@Query('as') as: string) {
+    console.log(this, '-----');
+    console.log(this.userService);
     console.log('========= arguments', arguments);
     console.log('========= 1', 1);
     console.log('========= as', as);
@@ -129,6 +139,17 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
+  UserController.prototype.constructor = function UserController(as: any) {
+    let args = arguments;
+    console.log('========= args', args);
+    const newInstance = Object.create(UserController.prototype);
+    return newInstance;
+  };
+
+  // console.log(1)
+  // let x = new UserController(1);
+  // console.log(x, (x as any).test)
+
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {
     console.log('========= 1', 1);
