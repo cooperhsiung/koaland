@@ -3,7 +3,6 @@
  */
 import 'reflect-metadata';
 import {
-  autowired,
   Body,
   Context,
   Controller,
@@ -23,7 +22,8 @@ import {
   Response,
   ThriftFactory,
   Use,
-} from '../';
+  Container,
+} from '../src';
 
 var UnpkgService = require('./gen_thrift/UnpkgService');
 var { GreeterService } = require('./gen_gprc/helloworld_grpc_pb');
@@ -63,7 +63,9 @@ const testMiddleware2 = async (ctx: any, next: any) => {
 
 @Injectable()
 class Test2Service {
-  sayHello() {}
+  sayHello() {
+    return 1;
+  }
 }
 
 @Injectable()
@@ -76,9 +78,14 @@ class TestService {
   }
 }
 
+Container.set('token.demo3', { hello: 'world' });
+
+interface TestType {}
+
 @Injectable()
 class UserService {
   @Inject() public testService: TestService;
+  @Inject('token.demo3') public test2: TestType;
   // constructor(private test2Service: Test2Service) {
   //
   // }
@@ -88,27 +95,22 @@ class UserService {
 }
 
 @Use(testMiddleware2)
-@Controller({ prefix: 'hello' })
+@Controller()
 class UserController {
   @Inject() public userService: UserService;
   constructor() {}
 
-  @Get('/test')
-  hello(@Query('as') as: string) {
-    console.log(this, '-----');
-
+  @Get('/users/:id')
+  getOne(@Query('as') as: string) {
+    console.log(this, '-----', this.userService.test2);
     console.log(this.userService.testService.test2Service.sayHello());
-
-    // console.log(this.userService.sayYes());
-    console.log('========= arguments', arguments);
-    console.log('========= 1', 1);
-    console.log('========= as', as);
+    console.log('arguments:', arguments);
     return 'hello world';
   }
 
   // ctx.params.id
   @Get('/test/:id')
-  hello2(
+  getTest(
     @Query('as') as: string,
     @Query() qqqq: any,
     @Param('id') uid: string,
@@ -117,36 +119,23 @@ class UserController {
     @Req() req2: any,
     @Response() res: any
   ) {
-    // console.log('========= arguments', arguments);
-    // console.log('========= as', as);
-    // console.log('========= uid', uid);
-    // console.log('========= qqqq', qqqq);
-    // console.log('========= ctx', ctx);
-    console.log('========= req', req2);
+    // console.log('arguments:', arguments);
     return 'hello world';
   }
 
   @Post('/test/:id')
-  hello3(
+  updateOne(
     @Query('as') as: string,
-    @Query() qqqq: any,
+    @Query() qqqq: string,
     @Param('id') uid: string,
     @Context() ctx: any,
     @Request() req: any,
     @Response() res: any,
     @Body() body: any,
     @Headers() headers: any,
-    @Headers('user-agent') userAgent: any
+    @Headers('user-agent') userAgent: string
   ) {
-    // console.log('========= arguments', arguments);
-    console.log('========= as33', as);
-    console.log('========= uid333', uid);
-    console.log('========= qqqq333', qqqq);
-    // console.log('========= ctx', ctx);
-    console.log('========= req33', req);
-    console.log('========= body33', body);
-    console.log('========= headers', headers);
-    console.log('========= userAgent', userAgent);
+    console.log('arguments:', arguments);
     return 'hello world';
   }
 
@@ -168,6 +157,15 @@ class UserController {
   }
 }
 
+@Controller({ prefix: 'test' })
+class TestController {
+  @Get(':id')
+  sayHello(@Param('id') pid: string, @Req() req: any) {
+    console.log('pid:', pid);
+    return 'hello test';
+  }
+}
+
 @Module({
   controllers: [UserController],
   midddlewares: [costMiddleware, testMiddleware],
@@ -175,8 +173,7 @@ class UserController {
 class AppModule {}
 
 async function bootstrap() {
-  let x = autowired(UserService);
-
+  let x = Container.get(UserService);
   console.log('========= x', x);
   // console.log("-------",x, (x as any).testService.sayHello())
   // console.log(1)
@@ -184,23 +181,32 @@ async function bootstrap() {
   // console.log(x, (x as any).test)
 
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
-  app.use((ctx: any, next: any) => {
-    console.log('========= 1', 1);
+  app.use(async (ctx: any, next: any) => {
+    console.log(1);
+    // console.log("========= ctx.params",ctx.params);
+    await next();
+    // console.log("========= ctx.params22",ctx.params);
   });
   await app.listen(3000);
   console.log('listening on 3000...');
 
   const app2 = await ThriftFactory.create(AppModule, { service: UnpkgService });
-  app2.use((ctx: any, next: any) => {
-    console.log('========= 2', 2);
+  app2.use(async (ctx: any, next: any) => {
+    console.log(2);
+    await next();
+  });
+
+  app2.on('error', (err: Error) => {
+    console.error(err);
   });
 
   await app2.listen(3001);
   console.log('listening on 3001...');
 
   const app3 = await GrpcFactory.create(AppModule, { service: GreeterService });
-  app3.use((ctx: any, next: any) => {
-    console.log('========= 2', 2);
+  app3.use(async (ctx: any, next: any) => {
+    console.log(3);
+    await next();
   });
 
   await app3.listen('0.0.0.0:3002');
