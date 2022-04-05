@@ -22,6 +22,7 @@
   - [Simple app](#Simple-app)
   - [Receive request parameters](#Receive-request-parameters)
   - [Reusable app modules](#Reusable-app-modules)
+  - [Dependency injections](#Dependency-injections)
 - [Generate code](#Generate-code)
 - [Examples](#Examples)
 
@@ -86,6 +87,20 @@ async function bootstrap() {
 bootstrap();
 ```
 
+3.(optional) Integrate with your existing app
+
+```typescript
+import { mapRoute, assemble } from 'koa-suit';
+const app = new Koa();
+const routes = mapRoute(UserController);
+// use route
+app.use(routes);
+
+// or reuse app module
+const engine = assemble(AppModule);
+app.use(engine);
+```
+
 ### Receive request parameters
 
 - `@Query`: get url query parameters
@@ -138,9 +153,7 @@ Practice of the slogan `write once, run anywhere`
 class UserController {
   @Get('/test')
   hello(@Query('as') as: string) {
-    console.log('========= arguments', arguments);
-    console.log('========= 1', 1);
-    console.log('========= as', as);
+    console.log('arguments:', arguments);
     return 'hello world';
   }
 
@@ -155,6 +168,7 @@ class UserController {
     @Req() req2: any,
     @Response() res: any
   ) {
+    console.log('arguments:', arguments);
     return 'hello world';
   }
 
@@ -176,7 +190,7 @@ class UserController {
   // route for thrift or grpc
   @Method()
   Publish(@Request() req: any) {
-    console.log('========= req', req);
+    console.log('req:', req);
     return { code: 0, message: 'publish success' };
   }
 
@@ -200,14 +214,16 @@ class AppModule {}
 async function bootstrap() {
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {
-    console.log('========= 1', 1);
+    console.log(1);
+    next();
   });
   await app.listen(3000);
   console.log('listening on 3000...');
 
   const app2 = await ThriftFactory.create(AppModule, { service: UnpkgService });
   app2.use((ctx: any, next: any) => {
-    console.log('========= 2', 2);
+    console.log(2);
+    next();
   });
 
   await app2.listen(3001);
@@ -215,13 +231,75 @@ async function bootstrap() {
 
   const app3 = await GrpcFactory.create(AppModule, { service: GreeterService });
   app3.use((ctx: any, next: any) => {
-    console.log('========= 2', 2);
+    console.log(3);
+    next();
   });
 
   await app3.listen('0.0.0.0:3002');
   console.log('listening on 3002...');
 }
 bootstrap();
+```
+
+### Dependency injections
+
+Comes with automatic dependency injections.
+
+```typescript
+@Injectable()
+class Test2Service {
+  sayHello() {
+    return 1;
+  }
+}
+
+@Injectable()
+class TestService {
+  constructor(public readonly test2Service: Test2Service) {}
+
+  sayHello() {
+    console.log('test');
+    return 'test';
+  }
+}
+
+Container.set('token.demo3', { hello: 'world' });
+
+interface TestType {}
+
+@Injectable()
+class UserService {
+  @Inject() public testService: TestService;
+  @Inject('token.demo3') public test2: TestType;
+  constructor(private test2Service: Test2Service) {}
+  sayYes() {
+    return 'yes';
+  }
+}
+
+@Controller()
+class UserController {
+  @Inject() public userService: UserService;
+  constructor() {}
+
+  @Get('/users/:id')
+  getOne(@Query('as') as: string) {
+    console.log(this, '-----', this.userService.test2);
+    console.log(this.userService.testService.test2Service.sayHello());
+    console.log('arguments:', arguments);
+    return 'hello world';
+  }
+}
+
+async function bootstrap() {
+  const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
+  await app.listen(3000);
+  console.log('listening on 3000...');
+}
+bootstrap();
+
+let srv = Container.get(UserService);
+console.log('========= srv', srv);
 ```
 
 ## Generate code
