@@ -11,7 +11,7 @@
 
 - :globe_with_meridians: Regardless of protocals, `write once, run anywhere`, includes http,thrift,grpc..
 
-- :jigsaw: Idiomatic and composable decorators, comes with automatic dependency injections
+- :jigsaw: Idiomatic and composable decorators, comes with automatic dependency injections.
 
 - :tropical_fish: Extremely fast, high performance near koa with few dependencies.
 
@@ -87,7 +87,7 @@ async function bootstrap() {
 bootstrap();
 ```
 
-3.(optional) Integrate with your existing app
+3. (optional) Integrate with your existing app
 
 ```typescript
 import { mapRoute, assemble } from 'koa-suit';
