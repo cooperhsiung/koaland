@@ -7,11 +7,23 @@
 
 :rocket: A progressive, minimalist framework for building microservices on top of Koa & TypeScript.
 
-:globe_with_meridians: Regardless of protocals, **write once, run anywhere** , includes http,thrift,grpc..
+## Features
 
-:jigsaw: Idiomatic and composable decorators.
+- :globe_with_meridians: Regardless of protocals, `write once, run anywhere`, includes http,thrift,grpc..
 
-:airplane: Extremely fast, high performance near koa with few dependencies.
+- :jigsaw: Idiomatic and composable decorators, comes with automatic dependency injections
+
+- :tropical_fish: Extremely fast, high performance near koa with few dependencies.
+
+## Index
+
+- [Installation](#Installation)
+- [Usage](#Usage)
+  - [Simple app](#Simple app)
+  - [Receive request parameters](#Receive request parameters)
+  - [Reusable app modules](#Reusable app modules)
+- [Generate code](#Generate code)
+- [Examples](#Examples)
 
 ## Installation
 
@@ -118,7 +130,7 @@ export class UserController {
 
 ### Reusable app modules
 
-**write once, run anywhere**
+Practice of the slogan `write once, run anywhere`
 
 ```typescript
 @Use(testMiddleware2)
@@ -184,7 +196,6 @@ class UserController {
 })
 class AppModule {}
 
-
 // middleware order: factory -> module -> controller -> route
 async function bootstrap() {
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
@@ -214,6 +225,8 @@ bootstrap();
 ```
 
 ## Generate code
+
+content about thrift and grpc application.
 
 ### thrift
 
