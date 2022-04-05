@@ -9,7 +9,9 @@
 
 :globe_with_meridians: Regardless of protocals, **write once, run anywhere** , includes http,thrift,grpc..
 
-:jigsaw: Idiomatic and composable decorators
+:jigsaw: Idiomatic and composable decorators.
+
+:airplane: Extremely fast, high performance near koa with few dependencies.
 
 ## Installation
 
@@ -182,6 +184,8 @@ class UserController {
 })
 class AppModule {}
 
+
+// middleware order: factory -> module -> controller -> route
 async function bootstrap() {
   const app = await HttpFactory.create(AppModule, { middlewares: [bodyParser()] });
   app.use((ctx: any, next: any) => {

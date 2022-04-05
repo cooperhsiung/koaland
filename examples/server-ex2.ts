@@ -20,7 +20,7 @@ import {
   Response,
   ThriftFactory,
   Use,
-} from '../';
+} from '../src';
 
 var UnpkgService = require('./gen_thrift/UnpkgService');
 var { GreeterService } = require('./gen_gprc/helloworld_grpc_pb');

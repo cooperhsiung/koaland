@@ -5,3 +5,6 @@
 package-lock.json
 index.ts
 examples/
+coverage/
+src/
+test/

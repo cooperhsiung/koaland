@@ -2,7 +2,7 @@
  * Created by Cooper on 2022/03/27.
  */
 import 'reflect-metadata';
-import { Body, Controller, Delete, Get, HttpFactory, Module, Param, Post, Put } from '../';
+import { Body, Controller, Delete, Get, HttpFactory, Module, Param, Post, Put } from '../src';
 
 const bodyParser = require('koa-bodyparser');
 
