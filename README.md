@@ -19,10 +19,10 @@
 
 - [Installation](#Installation)
 - [Usage](#Usage)
-  - [Simple app](#Simple app)
-  - [Receive request parameters](#Receive request parameters)
-  - [Reusable app modules](#Reusable app modules)
-- [Generate code](#Generate code)
+  - [Simple app](#Simple-app)
+  - [Receive request parameters](#Receive-request-parameters)
+  - [Reusable app modules](#Reusable-app-modules)
+- [Generate code](#Generate-code)
 - [Examples](#Examples)
 
 ## Installation
