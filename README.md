@@ -9,11 +9,11 @@
 
 ## Features
 
-- :globe_with_meridians: Regardless of protocals, `write once, run anywhere`, includes http,thrift,grpc..
+- :globe_with_meridians: Protocol agnostic, `write once, run anywhere`, includes http,thrift,grpc..
 
 - :jigsaw: Idiomatic and composable decorators, comes with automatic dependency injections.
 
-- :tropical_fish: Extremely fast, high performance near koa with few dependencies.
+- :tropical_fish: Extremely fast, [high performance](https://github.com/cooperhsiung/rpc-server-benchmark) near koa with few dependencies.
 
 ## Index
 
