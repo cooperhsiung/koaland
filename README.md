@@ -49,22 +49,22 @@ export class UserController {
   }
 
   @Get('/:id')
-  getOne(@Param('id') id: number) {
+  getOne(@Param('id') id: string) {
     return 'This action returns user #' + id;
   }
 
   @Post()
-  post(@Body() user: any) {
+  post(@Body() user: User) {
     return 'Saving user...';
   }
 
   @Put('/:id')
-  put(@Param('id') id: number, @Body() user: any) {
+  put(@Param('id') id: string, @Body() user: User) {
     return 'Updating a user...';
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return 'Removing user...';
   }
 }
@@ -105,11 +105,13 @@ app.use(engine);
 
 - `@Query`: get url query parameters
 - `@Param`: get url path variables
-- `@Body`: get request post body
+- `@Body`: get request body
 - `@Request`: get request object
 - `@Response`: get response object
-- `@Contenxt`: get context object
+- `@Context`: get context object
 - `@Headers`: get headers object
+- `@Req`: get IncomingMessage
+- `@Res`: get ServerResponse
 
 ```typescript
 import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
@@ -122,7 +124,7 @@ export class UserController {
   }
 
   @Get('/users/:id')
-  getOne(@Param('id') id: number) {
+  getOne(@Param('id') id: string) {
     return userRepository.findById(id);
   }
 
@@ -132,12 +134,12 @@ export class UserController {
   }
 
   @Put('/users/:id')
-  put(@Param('id') id: number, @Body() user: User) {
+  put(@Param('id') id: string, @Body() user: User) {
     return userRepository.updateById(id, user);
   }
 
   @Delete('/users/:id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return userRepository.removeById(id);
   }
 }
@@ -165,7 +167,7 @@ class UserController {
     @Param('id') uid: string,
     @Context() ctx: any,
     @Request() req: any,
-    @Req() req2: any,
+    @Req() rawReq: IncomingMessage,
     @Response() res: any
   ) {
     console.log('arguments:', arguments);
