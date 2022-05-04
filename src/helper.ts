@@ -12,7 +12,7 @@ import { Constructor, Route } from './interface';
 
 const globalClassStore: { key: string; value: any }[] = [];
 
-export function isClass(v: any) {
+function isClass(v: any) {
   return typeof v === 'function' && /^\s*class\s+/.test(v.toString());
 }
 
