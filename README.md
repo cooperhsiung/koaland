@@ -1,4 +1,4 @@
-# koa-suit
+# koaland
 
 [![NPM Version][npm-image]][npm-url]
 [![Node Version][node-image]][node-url]
@@ -29,7 +29,7 @@
 ## Installation
 
 ```bash
-npm i koa-suit -S
+npm i koaland -S
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ npm i koa-suit -S
 1. Create a file UserController.ts
 
 ```typescript
-import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
+import { Controller, Param, Body, Get, Post, Put, Delete } from 'koaland';
 
 @Controller({ prefix: '/users' })
 export class UserController {
@@ -90,7 +90,7 @@ bootstrap();
 3. (optional) Integrate with your existing app
 
 ```typescript
-import { mapRoute, assemble } from 'koa-suit';
+import { mapRoute, assemble } from 'koaland';
 const app = new Koa();
 const routes = mapRoute(UserController);
 // use route
@@ -114,7 +114,7 @@ app.use(engine);
 - `@Res`: get ServerResponse
 
 ```typescript
-import { Controller, Param, Body, Get, Post, Put, Delete } from 'koa-suit';
+import { Controller, Param, Body, Get, Post, Put, Delete } from 'koaland';
 
 @Controller()
 export class UserController {
@@ -340,7 +340,7 @@ grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./gen_gprc --grpc_o
 
 ## Examples
 
-examples with client are listed at [examples](https://github.com/cooperhsiung/koa-suit/tree/master/examples)
+examples with client are listed at [examples](https://github.com/cooperhsiung/koaland/tree/master/examples)
 
 looking for a complete project [koa-suit-boilerplate](https://github.com/cooperhsiung/koa-suit-boilerplate)
 
@@ -350,7 +350,7 @@ looking for a complete project [koa-suit-boilerplate](https://github.com/cooperh
 
 MIT
 
-[npm-image]: https://img.shields.io/npm/v/koa-suit.svg
-[npm-url]: https://www.npmjs.com/package/koa-suit
+[npm-image]: https://img.shields.io/npm/v/koaland.svg
+[npm-url]: https://www.npmjs.com/package/koaland
 [node-image]: https://img.shields.io/badge/node.js-%3E=8-brightgreen.svg
 [node-url]: https://nodejs.org/download/
