@@ -342,7 +342,7 @@ grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./gen_gprc --grpc_o
 
 examples with client are listed at [examples](https://github.com/cooperhsiung/koaland/tree/master/examples)
 
-looking for a complete project [koa-suit-boilerplate](https://github.com/cooperhsiung/koa-suit-boilerplate)
+looking for a complete project [koaland-boilerplate](https://github.com/cooperhsiung/koaland-boilerplate)
 
 ## Others
 
